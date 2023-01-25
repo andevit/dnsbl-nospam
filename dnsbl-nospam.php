@@ -10,15 +10,15 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.0.0
+ * Version:              1.0.1
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
 
 function restrict_admin() {
 
-    $key_email = 'your-email';
-    $key_message = 'your-message';
+    $key_email = 'email';
+    $key_message = 'messaggio';
 
     if ( !is_user_logged_in() && $_SERVER['REQUEST_METHOD'] == 'POST' && ( wp_doing_ajax() || (strpos($_SERVER["REQUEST_URI"],'/wp-json/contact-form-7/v1/contact-forms/') !== FALSE && strpos($_SERVER["REQUEST_URI"],'/feedback') !== FALSE) ) ) {
         require_once dirname(__FILE__).'/vendor/autoload.php';
@@ -51,11 +51,14 @@ function restrict_admin() {
         else
         {
             // Search in all available blacklists
-            $filter = new SpamFilter();
-            $result = $filter->check_text($_REQUEST[$key_message]);
-            if($result)
+            if(isset($_REQUEST[$key_message]){
+                $filter = new SpamFilter();
+                $result = $filter->check_text($_REQUEST[$key_message]);
+            }
+            
+            if(isset($result) && $result)
             {
-                wp_mail('andrea.pagliarani@gmail.com', "SPAM DETECT #2 " . get_client_ip(),  implode(',', $_POST));
+                wp_mail('andrea.pagliarani@gmail.com', "[".$_SERVER['SERVER_NAME']."] SPAM DETECT #2 " . get_client_ip(),  implode(',', $_POST));
                 exit();
             }
             elseif($_REQUEST[$key_email])
@@ -68,7 +71,7 @@ function restrict_admin() {
 
                 if(!$validator->isValid($_REQUEST[$key_email], $multipleValidations))
                 {
-                    wp_mail('andrea.pagliarani@gmail.com', "SPAM DETECT #3 " . get_client_ip(),  implode(',', $_POST));
+                    wp_mail('andrea.pagliarani@gmail.com', "[".$_SERVER['SERVER_NAME']."] SPAM DETECT #3 " . get_client_ip(),  implode(',', $_POST));
                     exit();
                 }
             }
