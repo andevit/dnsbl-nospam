@@ -9,5 +9,9 @@
     "require": {
         "jbboehr/dnsbl": "0.1.*",
         "egulias/email-validator": "^3.2"
+    },
+    "require": {
+        "php": "^5.6 || ^7.0"
     }
+
 }
