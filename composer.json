@@ -1,0 +1,13 @@
+{
+    "name": "andrea/dnsbl-nospam",
+    "authors": [
+        {
+            "name": "Andrea Pagliarani",
+            "email": "info@andev.it"
+        }
+    ],
+    "require": {
+        "jbboehr/dnsbl": "0.1.*",
+        "egulias/email-validator": "^3.2"
+    }
+}

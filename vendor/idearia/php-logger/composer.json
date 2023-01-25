@@ -1,0 +1,25 @@
+{
+    "name": "idearia/php-logger",
+    "description": "Simple logger class for PHP with time tracking",
+    "keywords": ["log", "logging", "time-tracking"],
+    "type": "library",
+    "license": "GPL-3.0-or-later",
+    "homepage": "https://github.com/Idearia/php-logger",
+    "scripts": {
+        "test": [
+            "phpunit --testdox"
+        ]
+    },
+    "require": {
+        "php": "^7.0 | ^8.0"
+    },
+    "autoload": {
+        "psr-4": {"Idearia\\": "src/"}
+    },
+    "autoload-dev": {
+        "psr-4": {"Idearia\\Tests\\": "tests/"}
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    }
+}
