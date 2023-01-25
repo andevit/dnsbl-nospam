@@ -1,5 +1,6 @@
 {
     "name": "andrea/dnsbl-nospam",
+    "type": "wordpress-plugin",
     "authors": [
         {
             "name": "Andrea Pagliarani",
