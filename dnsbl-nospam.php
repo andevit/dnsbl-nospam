@@ -51,7 +51,7 @@ function restrict_admin() {
         else
         {
             // Search in all available blacklists
-            if(isset($_REQUEST[$key_message]){
+            if(isset($_REQUEST[$key_message])){
                 $filter = new SpamFilter();
                 $result = $filter->check_text($_REQUEST[$key_message]);
             }
