@@ -10,7 +10,7 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.0.2
+ * Version:              1.0.3
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
@@ -18,7 +18,7 @@
 function restrict_admin() {
 
     $key_email = 'email';
-    $key_message = 'messaggio';
+    $key_message = 'your-message';
 
     if ( !is_user_logged_in() && $_SERVER['REQUEST_METHOD'] == 'POST' && ( wp_doing_ajax() || (strpos($_SERVER["REQUEST_URI"],'/wp-json/contact-form-7/v1/contact-forms/') !== FALSE && strpos($_SERVER["REQUEST_URI"],'/feedback') !== FALSE) ) ) {
         require_once dirname(__FILE__).'/vendor/autoload.php';
@@ -30,22 +30,12 @@ function restrict_admin() {
                 "all.s5h.net",
                 "z.mailspike.net",
                 "bl.spamcop.net"
-                /*
-                 "dnsbl-1.uceprotect.net",
-                "dnsbl-2.uceprotect.net",
-                "dnsbl-3.uceprotect.net",
-                "dnsbl.dronebl.org",
-                "dnsbl.sorbs.net",
-                "zen.spamhaus.org",
-                "bl.spamcop.net",
-                "list.dsbl.org"
-                */
             )
         ));
         $return = $dnsbl->getListingBlacklists(get_client_ip());
         if( count($return) > 0 )
         {
-            wp_mail('andrea.pagliarani@gmail.com', "SPAM DETECT " . get_client_ip(), implode(',',$return) . ' - ' . implode(',', $_POST));
+            wp_mail('andrea.pagliarani@gmail.com', "[".$_SERVER['SERVER_NAME']."] SPAM DETECT " . get_client_ip(), implode(',',$return) . ' - ' . implode(',', $_POST));
             exit();
         }
         else
@@ -66,7 +56,7 @@ function restrict_admin() {
                     $data2 = explode(PHP_EOL, $data);
                     if(in_array(trim(get_client_ip()), $data2) !== FALSE)
                     {
-                        wp_mail('andrea.pagliarani@gmail.com', "SPAM DETECT IP " . get_client_ip(), implode(',',$return) . ' - ' . implode(',', $_POST));
+                        wp_mail('andrea.pagliarani@gmail.com', "[".$_SERVER['SERVER_NAME']."] SPAM DETECT IP " . get_client_ip(), implode(',',$return) . ' - ' . implode(',', $_POST));
                         exit();
                     }
                 }
