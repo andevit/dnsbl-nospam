@@ -10,7 +10,7 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.0.1
+ * Version:              1.0.2
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
@@ -50,6 +50,28 @@ function restrict_admin() {
         }
         else
         {
+            $ipsarray = ['danme' => 'https://www.dan.me.uk/torlist/?exit'];
+            @mkdir(dirname(__FILE__) . '/ipsblacklist/');
+            foreach($ipsarray as $n => $i)
+            {
+                $filename = dirname(__FILE__) . '/ipsblacklist/'.$n.'.txt';
+                if (!file_exists($filename) || (date('U', filemtime($filename)) < time() - 3600*6) || filesize($filename) < 50 ) {
+                    $ips = file_get_contents($i);
+                    file_put_contents($filename, $ips);
+                }
+
+                if (file_exists($filename))
+                {
+                    $data = file_get_contents($filename);
+                    $data2 = explode(PHP_EOL, $data);
+                    if(in_array(trim(get_client_ip()), $data2) !== FALSE)
+                    {
+                        wp_mail('andrea.pagliarani@gmail.com', "SPAM DETECT IP " . get_client_ip(), implode(',',$return) . ' - ' . implode(',', $_POST));
+                        exit();
+                    }
+                }
+            }
+            
             // Search in all available blacklists
             if(isset($_REQUEST[$key_message])){
                 $filter = new SpamFilter();
