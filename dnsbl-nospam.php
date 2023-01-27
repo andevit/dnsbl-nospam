@@ -2,9 +2,6 @@
 /**
  * Plugin DNSBL No spam
  *
- * @package              hcaptcha-wp
- * @author               hCaptcha
- * @license              GPL-2.0-or-later
  * @wordpress-plugin
  *
  * Plugin Name:          DNSBL - No Spam
