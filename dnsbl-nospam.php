@@ -7,7 +7,7 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.0.3
+ * Version:              1.0.4
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
@@ -26,7 +26,8 @@ function restrict_admin() {
                 "bl.mxrbl.com",
                 "all.s5h.net",
                 "z.mailspike.net",
-                "bl.spamcop.net"
+                "bl.spamcop.net",
+                "dnsbl.sorbs.net"
             )
         ));
         $return = $dnsbl->getListingBlacklists(get_client_ip());
