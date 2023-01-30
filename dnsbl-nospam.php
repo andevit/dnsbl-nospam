@@ -27,7 +27,7 @@ function restrict_admin() {
                 "all.s5h.net",
                 "z.mailspike.net",
                 "bl.spamcop.net",
-                "dnsbl.sorbs.net"
+                "spam.dnsbl.sorbs.net"
             )
         ));
         $return = $dnsbl->getListingBlacklists(get_client_ip());
