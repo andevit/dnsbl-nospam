@@ -7,88 +7,99 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.0.4
+ * Version:              1.1.0
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
 
-function restrict_admin() {
+add_action("wpcf7_before_send_mail", "wpcf7_do_something_else");
+function wpcf7_do_something_else($cf7) {
+    // get the contact form object
+    $wpcf = WPCF7_ContactForm::get_current();
 
     $key_email = 'email';
-    $key_message = 'your-message';
+    $key_message = 'note';
 
-    if ( !is_user_logged_in() && $_SERVER['REQUEST_METHOD'] == 'POST' && ( wp_doing_ajax() || (strpos($_SERVER["REQUEST_URI"],'/wp-json/contact-form-7/v1/contact-forms/') !== FALSE && strpos($_SERVER["REQUEST_URI"],'/feedback') !== FALSE) ) ) {
-        require_once dirname(__FILE__).'/vendor/autoload.php';
-        require_once dirname(__FILE__).'/spamfilter.php';
+    if ( !is_user_logged_in() ) {
 
-        $dnsbl = new \DNSBL\DNSBL(array(
-            'blacklists' => array(
-                "bl.mxrbl.com",
-                "all.s5h.net",
-                "z.mailspike.net",
-                "bl.spamcop.net",
-                "spam.dnsbl.sorbs.net"
-            )
-        ));
-        $return = $dnsbl->getListingBlacklists(get_client_ip());
-        if( count($return) > 0 )
+        // Controllo link
+        if(stripos($_REQUEST[$key_message], 'http://') !== FALSE || stripos($_REQUEST[$key_message], 'https://') !== FALSE)
         {
-            wp_mail('andrea.pagliarani@gmail.com', "[".$_SERVER['SERVER_NAME']."] SPAM DETECT " . get_client_ip(), implode(',',$return) . ' - ' . implode(',', $_POST));
-            exit();
+            $wpcf->skip_mail = true;
         }
         else
         {
-            $ipsarray = ['danme' => 'https://www.dan.me.uk/torlist/?exit'];
-            @mkdir(dirname(__FILE__) . '/ipsblacklist/');
-            foreach($ipsarray as $n => $i)
-            {
-                $filename = dirname(__FILE__) . '/ipsblacklist/'.$n.'.txt';
-                if (!file_exists($filename) || (date('U', filemtime($filename)) < time() - 3600*6) || filesize($filename) < 50 ) {
-                    $ips = file_get_contents($i);
-                    file_put_contents($filename, $ips);
-                }
+            // DNSBL Check IP
+            require_once dirname(__FILE__).'/vendor/autoload.php';
+            require_once dirname(__FILE__).'/spamfilter.php';
 
-                if (file_exists($filename))
+            $dnsbl = new \DNSBL\DNSBL(array(
+                'blacklists' => array(
+                    "bl.mxrbl.com",
+                    "all.s5h.net",
+                    "z.mailspike.net",
+                    "bl.spamcop.net",
+                    "spam.dnsbl.sorbs.net"
+                )
+            ));
+            $return = $dnsbl->getListingBlacklists(get_client_ip());
+            if( count($return) > 0 )
+            {
+                $wpcf->skip_mail = true;
+            }
+            else
+            {
+                // List blacklist Check IP
+                $ipsarray = ['danme' => 'https://www.dan.me.uk/torlist/?exit'];
+                @mkdir(dirname(__FILE__) . '/ipsblacklist/');
+                foreach($ipsarray as $n => $i)
                 {
-                    $data = file_get_contents($filename);
-                    $data2 = explode(PHP_EOL, $data);
-                    if(in_array(trim(get_client_ip()), $data2) !== FALSE)
+                    $filename = dirname(__FILE__) . '/ipsblacklist/'.$n.'.txt';
+                    if (!file_exists($filename) || (date('U', filemtime($filename)) < time() - 3600*6) || filesize($filename) < 50 ) {
+                        $ips = file_get_contents($i);
+                        file_put_contents($filename, $ips);
+                    }
+
+                    if (file_exists($filename))
                     {
-                        wp_mail('andrea.pagliarani@gmail.com', "[".$_SERVER['SERVER_NAME']."] SPAM DETECT IP " . get_client_ip(), implode(',',$return) . ' - ' . implode(',', $_POST));
-                        exit();
+                        $data = file_get_contents($filename);
+                        $data2 = explode(PHP_EOL, $data);
+                        if(in_array(trim(get_client_ip()), $data2) !== FALSE)
+                        {
+                            $wpcf->skip_mail = true;
+                        }
                     }
                 }
-            }
-            
-            // Search in all available blacklists
-            if(isset($_REQUEST[$key_message])){
-                $filter = new SpamFilter();
-                $result = $filter->check_text($_REQUEST[$key_message]);
-            }
-            
-            if(isset($result) && $result)
-            {
-                wp_mail('andrea.pagliarani@gmail.com', "[".$_SERVER['SERVER_NAME']."] SPAM DETECT #2 " . get_client_ip(),  implode(',', $_POST));
-                exit();
-            }
-            elseif($_REQUEST[$key_email])
-            {
-                $validator = new \Egulias\EmailValidator\EmailValidator();
-                $multipleValidations = new \Egulias\EmailValidator\Validation\MultipleValidationWithAnd([
-                    new \Egulias\EmailValidator\Validation\RFCValidation(),
-                    new \Egulias\EmailValidator\Validation\DNSCheckValidation()
-                ]);
 
-                if(!$validator->isValid($_REQUEST[$key_email], $multipleValidations))
+                // Search in all available blacklists
+                if(isset($_REQUEST[$key_message])){
+                    $filter = new SpamFilter();
+                    $result = $filter->check_text($_REQUEST[$key_message]);
+                }
+
+                if(isset($result) && $result)
                 {
-                    wp_mail('andrea.pagliarani@gmail.com', "[".$_SERVER['SERVER_NAME']."] SPAM DETECT #3 " . get_client_ip(),  implode(',', $_POST));
-                    exit();
+                    $wpcf->skip_mail = true;
+                }
+                elseif($_REQUEST[$key_email])
+                {
+                    // Validate email from
+                    $validator = new \Egulias\EmailValidator\EmailValidator();
+                    $multipleValidations = new \Egulias\EmailValidator\Validation\MultipleValidationWithAnd([
+                        new \Egulias\EmailValidator\Validation\RFCValidation(),
+                        new \Egulias\EmailValidator\Validation\DNSCheckValidation()
+                    ]);
+
+                    if(!$validator->isValid($_REQUEST[$key_email], $multipleValidations))
+                    {
+                        $wpcf->skip_mail = true;
+                    }
                 }
             }
         }
     }
+    return $wpcf;
 }
-add_action( 'init', 'restrict_admin', 1 );
 
 function get_client_ip() {
     $ipaddress = '';
