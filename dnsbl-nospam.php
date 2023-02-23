@@ -7,7 +7,7 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.1.1
+ * Version:              1.1.2
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
@@ -20,8 +20,8 @@ function wpcf7_do_something_else($cf7) {
     $key_email = 'contact-email';
     $key_message = 'contact-message';
 
-    // Controllo link
-    if(stripos($_REQUEST[$key_message], 'http://') !== FALSE || stripos($_REQUEST[$key_message], 'https://') !== FALSE)
+    // Controllo link http:/ - https:// - .com/ - .ru/
+    if(stripos($_REQUEST[$key_message], 'http://') !== FALSE || stripos($_REQUEST[$key_message], 'https://') !== FALSE || stripos($_REQUEST[$key_message],'.com/') || stripos($_REQUEST[$key_message],'.ru/') )
     {
         $wpcf->skip_mail = true;
     }
