@@ -7,13 +7,16 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.1.2
+ * Version:              1.1.3
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
 
 add_action("wpcf7_before_send_mail", "wpcf7_do_something_else");
 function wpcf7_do_something_else($cf7) {
+    
+    $onlyItalyIP = TRUE;
+    
     // get the contact form object
     $wpcf = WPCF7_ContactForm::get_current();
 
@@ -95,6 +98,30 @@ function wpcf7_do_something_else($cf7) {
             }
         }
     }
+    
+    if($onlyItalyIP)
+    {
+        try{
+            $ch=curl_init();
+            curl_setopt($ch,CURLOPT_URL,"http://www.geoplugin.net/json.gp?ip=" . get_client_ip());
+            curl_setopt($ch,CURLOPT_RETURNTRANSFER,true);
+            curl_setopt($ch,CURLOPT_HEADER, false);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10); //timeout in seconds
+            $result=curl_exec($ch);
+            curl_close($ch);
+            $result = json_decode($result, TRUE);
+            if($result['geoplugin_countryCode'] != 'IT')
+            {
+                $wpcf->skip_mail = true;
+            }
+        }catch (\Exception $e)
+        {
+
+        }
+
+    }
+    
     if( $wpcf->skip_mail ) add_filter('wpcf7_skip_mail','__return_true');
     return $wpcf;
 }
