@@ -7,16 +7,82 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.1.3
+ * Version:              1.1.5
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
 
+add_action( 'wpcf7_init', 'wpcf7_add_form_tag_dnsbl', 10, 0 );
+
+function wpcf7_add_form_tag_dnsbl() {
+    wpcf7_add_form_tag( 'dnsbl',
+        'wpcf7_dnsbl_form_tag_handler',
+        array(
+            'name-attr' => true,
+        )
+    );
+}
+
+function wpcf7_dnsbl_form_tag_handler( $tag ) {
+    if ( empty( $tag->name ) ) {
+        return '';
+    }
+
+    $validation_error = wpcf7_get_validation_error( $tag->name );
+
+    $class = wpcf7_form_controls_class( $tag->type );
+
+    if ( $validation_error ) {
+        $class .= ' wpcf7-not-valid';
+    }
+
+    $item_atts = array(
+        'type' => 'hidden',
+        'name' => 'c_'.date('Ymd'),
+        'value' => '1',
+        'class' => $tag->get_class_option() ? $tag->get_class_option() : null,
+        'id' => $tag->get_id_option(),
+    );
+
+    if ( $validation_error ) {
+        $item_atts['aria-invalid'] = 'true';
+        $item_atts['aria-describedby'] = wpcf7_get_validation_error_reference(
+            $tag->name
+        );
+    } else {
+        $item_atts['aria-invalid'] = 'false';
+    }
+
+    $item_atts = wpcf7_format_atts( $item_atts );
+
+    $content = empty( $tag->content )
+        ? (string) reset( $tag->values )
+        : $tag->content;
+
+    $content = trim( $content );
+
+    if ( $content ) {
+
+        $html = sprintf(
+            '<input %1$s />',
+            $item_atts
+        );
+
+    } else {
+        $html = sprintf(
+            '<div><input %1$s /></div>',
+            $item_atts
+        );
+    }
+
+    return $html;
+}
+
 add_action("wpcf7_before_send_mail", "wpcf7_do_something_else");
 function wpcf7_do_something_else($cf7) {
-    
+
     $onlyItalyIP = TRUE;
-    
+
     // get the contact form object
     $wpcf = WPCF7_ContactForm::get_current();
 
@@ -34,6 +100,11 @@ function wpcf7_do_something_else($cf7) {
         require_once dirname(__FILE__).'/vendor/autoload.php';
         require_once dirname(__FILE__).'/spamfilter.php';
 
+        if(!isset($_REQUEST['c_'.date('Ymd')]))
+        {
+            $wpcf->skip_mail = true;
+        }
+
         $dnsbl = new \DNSBL\DNSBL(array(
             'blacklists' => array(
                 "bl.mxrbl.com",
@@ -47,6 +118,7 @@ function wpcf7_do_something_else($cf7) {
         if( count($return) > 0 )
         {
             $wpcf->skip_mail = true;
+            return $wpcf;
         }
         else
         {
@@ -68,6 +140,7 @@ function wpcf7_do_something_else($cf7) {
                     if(in_array(trim(get_client_ip()), $data2) !== FALSE)
                     {
                         $wpcf->skip_mail = true;
+                        return $wpcf;
                     }
                 }
             }
@@ -81,6 +154,7 @@ function wpcf7_do_something_else($cf7) {
             if(isset($result) && $result)
             {
                 $wpcf->skip_mail = true;
+                return $wpcf;
             }
             elseif($_REQUEST[$key_email])
             {
@@ -94,11 +168,12 @@ function wpcf7_do_something_else($cf7) {
                 if(!$validator->isValid($_REQUEST[$key_email], $multipleValidations))
                 {
                     $wpcf->skip_mail = true;
+                    return $wpcf;
                 }
             }
         }
     }
-    
+
     if($onlyItalyIP)
     {
         try{
@@ -121,7 +196,7 @@ function wpcf7_do_something_else($cf7) {
         }
 
     }
-    
+
     if( $wpcf->skip_mail ) add_filter('wpcf7_skip_mail','__return_true');
     return $wpcf;
 }
