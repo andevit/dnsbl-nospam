@@ -86,13 +86,14 @@ function wpcf7_do_something_else($cf7) {
     // get the contact form object
     $wpcf = WPCF7_ContactForm::get_current();
 
-    $key_email = 'contact-email';
-    $key_message = 'contact-message';
+    $key_email = 'your-email';
+    $key_message = 'your-message';
 
     // Controllo link http:/ - https:// - .com/ - .ru/
-    if(stripos($_REQUEST[$key_message], 'http://') !== FALSE || stripos($_REQUEST[$key_message], 'https://') !== FALSE || stripos($_REQUEST[$key_message],'.com/') || stripos($_REQUEST[$key_message],'.ru/') )
+    if(stripos($_REQUEST[$key_message], 'http://') !== FALSE || stripos($_REQUEST[$key_message],'.ru/') )
     {
         $wpcf->skip_mail = true;
+        return $wpcf;
     }
     else
     {
@@ -103,6 +104,7 @@ function wpcf7_do_something_else($cf7) {
         if(!isset($_REQUEST['c_'.date('Ymd')]))
         {
             $wpcf->skip_mail = true;
+            return $wpcf;
         }
 
         $dnsbl = new \DNSBL\DNSBL(array(
