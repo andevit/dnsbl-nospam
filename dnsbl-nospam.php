@@ -7,7 +7,7 @@
  * Plugin Name:          DNSBL - No Spam
  * Plugin URI:           https://www.andev.it
  * Description:          Check IP  DNSBL
- * Version:              1.1.5
+ * Version:              1.1.6
  * Author:               andev.it
  * Author URI:           https://www.andev.it
  */
@@ -90,10 +90,10 @@ function wpcf7_do_something_else($cf7) {
     $key_message = 'your-message';
 
     // Controllo link http:/ - https:// - .com/ - .ru/
+
     if(stripos($_REQUEST[$key_message], 'http://') !== FALSE || stripos($_REQUEST[$key_message],'.ru/') )
     {
         $wpcf->skip_mail = true;
-        return $wpcf;
     }
     else
     {
@@ -104,7 +104,6 @@ function wpcf7_do_something_else($cf7) {
         if(!isset($_REQUEST['c_'.date('Ymd')]))
         {
             $wpcf->skip_mail = true;
-            return $wpcf;
         }
 
         $dnsbl = new \DNSBL\DNSBL(array(
@@ -120,7 +119,6 @@ function wpcf7_do_something_else($cf7) {
         if( count($return) > 0 )
         {
             $wpcf->skip_mail = true;
-            return $wpcf;
         }
         else
         {
@@ -142,7 +140,6 @@ function wpcf7_do_something_else($cf7) {
                     if(in_array(trim(get_client_ip()), $data2) !== FALSE)
                     {
                         $wpcf->skip_mail = true;
-                        return $wpcf;
                     }
                 }
             }
@@ -156,7 +153,6 @@ function wpcf7_do_something_else($cf7) {
             if(isset($result) && $result)
             {
                 $wpcf->skip_mail = true;
-                return $wpcf;
             }
             elseif($_REQUEST[$key_email])
             {
@@ -170,7 +166,6 @@ function wpcf7_do_something_else($cf7) {
                 if(!$validator->isValid($_REQUEST[$key_email], $multipleValidations))
                 {
                     $wpcf->skip_mail = true;
-                    return $wpcf;
                 }
             }
         }
